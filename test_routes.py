@@ -78,6 +78,63 @@ def test_list_courts(mock_conn):
     assert response.status_code == 200
     assert response.json() == [{"id": 1, "location_id": 10, "name": "Court A", "sport": "Tennis"}]
 
+@patch("app.api.routes.internal.get_conn", side_effect=Exception("DB error"))
+def test_mark_booked_db_error(mock_conn):
+    response = client.post("/mark-booked", params={"court_id": 1, "slot_id": 2, "booking_id": 3})
+    assert response.status_code == 500
+    assert response.json()["detail"] == "DB error"
+
+@patch("app.api.routes.internal.get_conn", side_effect=Exception("DB error"))
+def test_mark_released_db_error(mock_conn):
+    response = client.post("/mark-released", params={"court_id": 1, "slot_id": 2, "booking_id": 3})
+    assert response.status_code == 500
+    assert response.json()["detail"] == "DB error"
+
+@patch("app.api.routes.public.get_conn", side_effect=Exception("DB error"))
+def test_list_locations_db_error(mock_conn):
+    response = client.get("/locations")
+    assert response.status_code == 500
+    assert response.json()["detail"] == "DB error"
+
+@patch("app.api.routes.public.get_conn")
+def test_list_all_courts(mock_conn):
+    mock_cursor = MagicMock()
+    mock_cursor.fetchall.return_value = [(1, 10, "Court A", "Tennis")]
+    mock_conn.return_value.cursor.return_value = mock_cursor
+
+    response = client.get("/courts")
+    assert response.status_code == 200
+    assert response.json() == [{"id": 1, "location_id": 10, "name": "Court A", "sport": "Tennis"}]
+
+@patch("app.api.routes.public.get_conn", side_effect=Exception("DB fail"))
+def test_list_courts_db_error(mock_conn):
+    response = client.get("/courts", params={"location_id": 10})
+    assert response.status_code == 500
+    assert response.json()["detail"] == "DB fail"
+
+@patch("app.api.routes.public.get_conn")
+def test_list_slots(mock_get_conn):
+    mock_cursor = MagicMock()
+    mock_cursor.fetchall.return_value = [
+        (1, 10, "2025-09-08", "09:00", "10:00", "AVAILABLE")
+    ]
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    mock_get_conn.return_value = mock_conn
+
+    response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["status"] == "AVAILABLE"
+    assert data[0]["court_id"] == 10
+
+@patch("app.api.routes.public.get_conn", side_effect=Exception("Slot error"))
+def test_list_slots_db_error(mock_conn):
+    response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
+    assert response.status_code == 500
+    assert response.json()["detail"] == "Slot error"
+
+
 # @patch("app.api.routes.internal.get_conn")
 # def test_list_slots(mock_get_conn):
 #     mock_cursor = MagicMock()
