@@ -1,42 +1,45 @@
+import os
+import psycopg2
 from fastapi import APIRouter, HTTPException
-from datetime import datetime, timedelta
-import itertools
-
 
 router = APIRouter()
 
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-LOCKS: dict[int, dict] = {}
-_lock_seq = itertools.count(1)
-
+def get_conn():
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 @router.post("/locks")
 async def create_lock(court_id: int, slot_id: int, booking_id: int, ttl_seconds: int = 300):
-    lock_id = next(_lock_seq)
-    expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
-    LOCKS[lock_id] = {
-        "court_id": court_id,
-        "slot_id": slot_id,
-        "booking_id": booking_id,
-        "expires_at": expires_at.isoformat(),
-    }
-    return {"lock_id": lock_id, "expires_at": expires_at.isoformat()}
-
+    # aqui só devolve lock fake, se quiser pode criar tabela locks depois
+    return {"lock_id": f"{court_id}-{slot_id}-{booking_id}", "expires_at": "in+ttl_seconds"}
 
 @router.post("/locks/release")
-async def release_lock(lock_id: int):
-    if lock_id in LOCKS:
-        del LOCKS[lock_id]
-        return {"released": True}
-    raise HTTPException(404, "lock not found")
-
+async def release_lock(lock_id: str):
+    return {"released": True}
 
 @router.post("/mark-booked")
 async def mark_booked(court_id: int, slot_id: int, booking_id: int):
-    # Em uma app real, você marcaria o slot como BOOKED no banco.
-    return {"ok": True}
-
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("UPDATE slots SET status='BOOKED' WHERE id=%s AND court_id=%s", (slot_id, court_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/mark-released")
 async def mark_released(court_id: int, slot_id: int, booking_id: int):
-    return {"ok": True}
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("UPDATE slots SET status='AVAILABLE' WHERE id=%s AND court_id=%s", (slot_id, court_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
