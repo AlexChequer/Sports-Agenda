@@ -84,7 +84,7 @@ def test_list_slots(mock_get_conn):
     mock_cursor.fetchall.return_value = [
         (1, 10, "2025-09-08", "09:00", "10:00", "AVAILABLE")
     ]
-    mock__get_conn.return_value.cursor.return_value = mock_cursor
+    mock_get_conn.return_value.cursor.return_value = mock_cursor
 
     response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
     assert response.status_code == 200
