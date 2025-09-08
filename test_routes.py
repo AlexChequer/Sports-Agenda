@@ -78,8 +78,7 @@ def test_list_courts(mock_conn):
     assert response.status_code == 200
     assert response.json() == [{"id": 1, "location_id": 10, "name": "Court A", "sport": "Tennis"}]
 
-@patch("app.api.routes.internal.get_conn")
-def test_list_slots(mock_get_conn):
+def test_list_slots():
     mock_cursor = MagicMock()
     mock_cursor.fetchall.return_value = [
         (1, 10, "2025-09-08", "09:00", "10:00", "AVAILABLE")
@@ -91,11 +90,19 @@ def test_list_slots(mock_get_conn):
     mock_conn.cursor.return_value = mock_cursor
     mock_conn.close.return_value = None
 
-    mock_get_conn.return_value = mock_conn
+    with patch("app.api.routes.internal.get_conn", return_value=mock_conn):
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
 
-    response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
+        response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data[0]["status"] == "AVAILABLE"
-    assert data[0]["court_id"] == 10
+        assert response.status_code == 200
+        data = response.json()
+        assert data[0]["status"] == "AVAILABLE"
+        assert data[0]["court_id"] == 10
+
+        mock_cursor.execute.assert_called_once()
+        mock_cursor.fetchall.assert_called_once()
+        mock_cursor.close.assert_called_once()
+        mock_conn.close.assert_called_once()
