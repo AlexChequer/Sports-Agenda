@@ -35,7 +35,7 @@ def test_release_lock():
     assert response.json() == {"released": True}
 
 # ---------- MOCKANDO DB ----------
-@patch("app.slots.get_conn")
+@patch("app.api.routes.internal.get_conn")
 def test_mark_booked(mock_conn):
     mock_cursor = MagicMock()
     mock_conn.return_value.cursor.return_value = mock_cursor
@@ -45,7 +45,7 @@ def test_mark_booked(mock_conn):
     assert response.json() == {"ok": True}
     mock_cursor.execute.assert_called_once()
 
-@patch("app.slots.get_conn")
+@patch("app.api.routes.internal.get_conn")
 def test_mark_released(mock_conn):
     mock_cursor = MagicMock()
     mock_conn.return_value.cursor.return_value = mock_cursor
@@ -55,7 +55,7 @@ def test_mark_released(mock_conn):
     assert response.json() == {"ok": True}
     mock_cursor.execute.assert_called_once()
 
-@patch("app.locations.get_conn")
+@patch("app.api.routes.public.get_conn")
 def test_list_locations(mock_conn):
     mock_cursor = MagicMock()
     mock_cursor.fetchall.return_value = [(1, "Loc A", "Addr A"), (2, "Loc B", "Addr B")]
@@ -68,7 +68,7 @@ def test_list_locations(mock_conn):
         {"id": 2, "name": "Loc B", "address": "Addr B"},
     ]
 
-@patch("app.locations.get_conn")
+@patch("app.api.routes.public.get_conn")
 def test_list_courts(mock_conn):
     mock_cursor = MagicMock()
     mock_cursor.fetchall.return_value = [(1, 10, "Court A", "Tennis")]
@@ -78,7 +78,7 @@ def test_list_courts(mock_conn):
     assert response.status_code == 200
     assert response.json() == [{"id": 1, "location_id": 10, "name": "Court A", "sport": "Tennis"}]
 
-@patch("app.slots.get_conn")
+@patch("app.api.routes.internal.get_conn")
 def test_list_slots(mock_conn):
     mock_cursor = MagicMock()
     mock_cursor.fetchall.return_value = [
