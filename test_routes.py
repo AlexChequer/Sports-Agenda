@@ -14,6 +14,7 @@ app.include_router(health_router)
 app.include_router(internal_router)
 app.include_router(public_router) 
 
+
 client = TestClient(app)
 
 # ---------- TESTES SIMPLES ----------
