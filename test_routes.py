@@ -78,16 +78,16 @@ def test_list_courts(mock_conn):
     assert response.status_code == 200
     assert response.json() == [{"id": 1, "location_id": 10, "name": "Court A", "sport": "Tennis"}]
 
-# @patch("app.api.routes.internal.get_conn")
-# def test_list_slots(mock_conn):
-#     mock_cursor = MagicMock()
-#     mock_cursor.fetchall.return_value = [
-#         (1, 10, "2025-09-08", "09:00", "10:00", "AVAILABLE")
-#     ]
-#     mock_conn.return_value.cursor.return_value = mock_cursor
+@patch("app.api.routes.internal.get_conn")
+def test_list_slots(mock_get_conn):
+    mock_cursor = MagicMock()
+    mock_cursor.fetchall.return_value = [
+        (1, 10, "2025-09-08", "09:00", "10:00", "AVAILABLE")
+    ]
+    mock_conn.return_value.cursor.return_value = mock_cursor
 
-#     response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data[0]["status"] == "AVAILABLE"
-#     assert data[0]["court_id"] == 10
+    response = client.get("/slots", params={"court_id": 10, "date": "2025-09-08"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["status"] == "AVAILABLE"
+    assert data[0]["court_id"] == 10
