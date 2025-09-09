@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.api.routes import health, public, internal
+from dotenv import load_dotenv
+load_dotenv()
 
 
 app = FastAPI(title="Sports-Agenda")
