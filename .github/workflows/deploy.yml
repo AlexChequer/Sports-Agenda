@@ -46,4 +46,8 @@ jobs:
           script: |
             docker stop sports-agenda
             docker rm --force sports-agenda
-            docker run -d -p 8081:5000 --name sports-agenda cheqr/sports-agenda-ci:${{ github.sha }} 
+            docker run -d \
+              --name sports-agenda \
+              -p 8081:5000 \
+              -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+              cheqr/sports-agenda-ci:${{ github.sha }}
