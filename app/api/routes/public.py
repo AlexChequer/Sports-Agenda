@@ -1,9 +1,10 @@
 import os
 import psycopg2
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import List
+from app.core.auth import verify_token
 
 load_dotenv()
 router = APIRouter()
@@ -14,7 +15,7 @@ def get_conn():
     return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 @router.get("/locations")
-async def list_locations():
+async def list_locations(payload=Depends(verify_token)):
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -27,7 +28,7 @@ async def list_locations():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/courts")
-async def list_courts(location_id: int | None = None):
+async def list_courts(location_id: int | None = None, payload=Depends(verify_token)):
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -43,7 +44,7 @@ async def list_courts(location_id: int | None = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/slots")
-async def list_slots(court_id: int, date: str):
+async def list_slots(court_id: int, date: str, payload=Depends(verify_token)):
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -78,7 +79,7 @@ class LocationWithCourtsCreate(BaseModel):
     courts: List[CourtCreate]
 
 @router.post("/locations-with-courts")
-async def create_location_with_courts(data: LocationWithCourtsCreate):
+async def create_location_with_courts(data: LocationWithCourtsCreate, payload=Depends(verify_token)):
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -109,7 +110,7 @@ class CourtOnlyCreate(BaseModel):
     sport: str
 
 @router.post("/courts")
-async def create_court(court: CourtOnlyCreate = Body(...)):
+async def create_court(court: CourtOnlyCreate = Body(...), payload=Depends(verify_token)):
     try:
         conn = get_conn()
         cur = conn.cursor()
