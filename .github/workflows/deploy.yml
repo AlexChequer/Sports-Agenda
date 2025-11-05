@@ -42,19 +42,18 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_TEST }}
-          username: "ubuntu"
+          username: ubuntu
           key: ${{ secrets.KEY_TEST }}
           port: 22
           script: |
             docker stop sports-agenda || true
             docker rm --force sports-agenda || true
+            docker network create rede || true
             docker run -d \
               --name sports-agenda \
               -p 8081:5000 \
               -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
-
               -e AUTH0_DOMAIN='dev-epomg1ffnhcleclg.us.auth0.com' \
               -e AUTH0_API_AUDIENCE='https://dev-epomg1ffnhcleclg.us.auth0.com/api/v2/' \
-
               --network=rede \
               cheqr/sports-agenda-ci:${{ github.sha }}
