@@ -52,6 +52,9 @@ jobs:
               --name sports-agenda \
               -p 8081:5000 \
               -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+
               -e AUTH0_DOMAIN='dev-epomg1ffnhcleclg.us.auth0.com' \
               -e AUTH0_API_AUDIENCE='https://dev-epomg1ffnhcleclg.us.auth0.com/api/v2/' \
+
+              --network=rede \
               cheqr/sports-agenda-ci:${{ github.sha }}
