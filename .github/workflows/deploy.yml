@@ -50,4 +50,5 @@ jobs:
               --name sports-agenda \
               -p 8081:5000 \
               -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+              --network=rede \
               cheqr/sports-agenda-ci:${{ github.sha }}
